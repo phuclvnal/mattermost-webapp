@@ -43,6 +43,11 @@ export default class SuggestionBox extends React.Component {
         listStyle: PropTypes.string,
 
         /**
+         * CSS class for the div parent of the input box
+         */
+        containerClass: PropTypes.string,
+
+        /**
          * Set to true to draw dividers between types of list items, defaults to false
          */
         renderDividers: PropTypes.bool,
@@ -106,16 +111,23 @@ export default class SuggestionBox extends React.Component {
          * If true, it displays allow to display a default list when empty
          */
         openWhenEmpty: PropTypes.bool,
+
+        /**
+         * If true, replace all input in the suggestion box with the selected option after a select, defaults to false
+         */
+        replaceAllInputOnSelect: PropTypes.bool,
     }
 
     static defaultProps = {
         listStyle: 'top',
+        containerClass: '',
         renderDividers: false,
         completeOnTab: true,
         isRHS: false,
         requiredCharacters: 1,
         openOnFocus: false,
         openWhenEmpty: false,
+        replaceAllInputOnSelect: false,
     }
 
     constructor(props) {
@@ -334,8 +346,27 @@ export default class SuggestionBox extends React.Component {
         });
     }
 
+    replaceText(term) {
+        const textbox = this.getTextbox();
+        textbox.value = term;
+
+        if (this.props.onChange) {
+            // fake an input event to send back to parent components
+            const e = {
+                target: textbox,
+            };
+
+            // don't call handleChange or we'll get into an event loop
+            this.props.onChange(e);
+        }
+    }
+
     handleCompleteWord(term, matchedPretext) {
-        this.addTextAtCaret(term, matchedPretext);
+        if (this.props.replaceAllInputOnSelect) {
+            this.replaceText(term);
+        } else {
+            this.addTextAtCaret(term, matchedPretext);
+        }
 
         if (this.props.onItemSelected) {
             const items = SuggestionStore.getItems(this.suggestionId);
@@ -448,13 +479,18 @@ export default class SuggestionBox extends React.Component {
         Reflect.deleteProperty(props, 'openWhenEmpty');
         Reflect.deleteProperty(props, 'onFocus');
         Reflect.deleteProperty(props, 'onBlur');
+        Reflect.deleteProperty(props, 'containerClass');
+        Reflect.deleteProperty(props, 'replaceAllInputOnSelect');
 
         // This needs to be upper case so React doesn't think it's an html tag
         const SuggestionListComponent = listComponent;
         const SuggestionDateComponent = dateComponent;
 
         return (
-            <div ref={this.setContainerRef}>
+            <div
+                ref={this.setContainerRef}
+                className={this.props.containerClass}
+            >
                 <QuickInput
                     ref='input'
                     autoComplete='off'
