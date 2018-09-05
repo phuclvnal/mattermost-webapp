@@ -53,6 +53,11 @@ export default class SuggestionBox extends React.Component {
         renderDividers: PropTypes.bool,
 
         /**
+         * Set to true to render a message when there were no results found, defaults to false
+         */
+        renderNoResults: PropTypes.bool,
+
+        /**
          * Set to allow TAB to select an item in the list, defaults to true
          */
         completeOnTab: PropTypes.bool,
@@ -122,6 +127,7 @@ export default class SuggestionBox extends React.Component {
         listStyle: 'top',
         containerClass: '',
         renderDividers: false,
+        renderNoResults: false,
         completeOnTab: true,
         isRHS: false,
         requiredCharacters: 1,
@@ -149,8 +155,12 @@ export default class SuggestionBox extends React.Component {
         // Keep track of whether we're composing a CJK character so we can make suggestions for partial characters
         this.composing = false;
 
-        // Keep track of weather a list based or date based suggestion provider has been triggered
+        // Keep track of whether a list based or date based suggestion provider has been triggered
         this.presentationType = 'text';
+
+        this.state = {
+            focused: false,
+        };
     }
 
     componentDidMount() {
@@ -204,6 +214,8 @@ export default class SuggestionBox extends React.Component {
             return;
         }
 
+        this.setState({focused: false});
+
         if (UserAgent.isIos() && !e.relatedTarget) {
             // iOS doesn't support e.relatedTarget, so we need to use the old method of just delaying the
             // blur so that click handlers on the list items still register
@@ -227,6 +239,8 @@ export default class SuggestionBox extends React.Component {
         if (this.container.contains(e.relatedTarget)) {
             return;
         }
+
+        this.setState({focused: true});
 
         if (this.props.openOnFocus || this.props.openWhenEmpty) {
             setTimeout(() => {
@@ -464,6 +478,7 @@ export default class SuggestionBox extends React.Component {
             dateComponent,
             listStyle,
             renderDividers,
+            renderNoResults,
             ...props
         } = this.props;
 
@@ -503,9 +518,11 @@ export default class SuggestionBox extends React.Component {
                 />
                 {(this.props.openWhenEmpty || this.props.value.length >= this.props.requiredCharacters) && this.presentationType === 'text' &&
                     <SuggestionListComponent
+                        open={this.state.focused}
                         suggestionId={this.suggestionId}
                         location={listStyle}
                         renderDividers={renderDividers}
+                        renderNoResults={renderNoResults}
                         onCompleteWord={this.handleCompleteWord}
                     />
                 }
