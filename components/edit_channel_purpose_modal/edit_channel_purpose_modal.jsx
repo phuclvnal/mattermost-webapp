@@ -166,7 +166,7 @@ export default class EditChannelPurposeModal extends React.Component {
         let channelPurposeModal = (
             <FormattedMessage
                 id='edit_channel_purpose_modal.body'
-                defaultMessage='Describe how this channel should be used. This text appears in the channel list in the "More..." menu and helps others decide whether to join.'
+                defaultMessage='Describe how this channel should be used. x2 This text appears in the channel list in the "More..." menu and helps others decide whether to join.'
             />
         );
         if (this.props.channel.type === 'P') {
